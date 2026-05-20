@@ -118,6 +118,9 @@ type TextFormatter struct {
 	// Whether the logger's out is to a terminal.
 	isTerminal bool
 
+	// PrintFileAndLine if true print the caller filename and line number 'example.go:123'
+	PrintFileAndLine bool
+
 	sync.Once
 }
 
@@ -188,12 +191,13 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		line int
 		ok   bool
 	)
-
-	if _, file, line, ok = runtime.Caller(2); !ok {
-		file = "???"
-		line = 0
-	} else {
-		file = fileNameOnly(file)
+	if f.PrintFileAndLine {
+		if _, file, line, ok = runtime.Caller(5); !ok {
+			file = "???"
+			line = 0
+		} else {
+			file = fileNameOnly(file)
+		}
 	}
 
 	prefixFieldClashes(entry.Data)
@@ -225,7 +229,9 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
 
-		f.appendValue(b, file+":"+strconv.Itoa(line))
+		if f.PrintFileAndLine {
+			f.appendValue(b, file+":"+strconv.Itoa(line))
+		}
 
 		if entry.Message != "" {
 			f.appendKeyValue(b, "msg", entry.Message, lastKeyIdx >= 0)
@@ -246,14 +252,6 @@ func fileNameOnly(filePath string) string {
 	}
 
 	return parts[len(parts)-1]
-}
-
-func removeFirstPath(filePath string) string {
-	parts := strings.Split(filePath, string(os.PathSeparator))
-	if len(parts) > 3 {
-		return strings.Join(parts[3:], string(os.PathSeparator))
-	}
-	return strings.Join(parts[1:], string(os.PathSeparator))
 }
 
 func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys []string, timestampFormat string, colorScheme *compiledColorScheme, file string, line int) {
@@ -312,7 +310,11 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 		} else {
 			timestamp = fmt.Sprintf("[%s]", entry.Time.Format(timestampFormat))
 		}
-		fmt.Fprintf(b, "%s %s%s %s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, fmt.Sprintf("%s:%d", file, line), message)
+		if f.PrintFileAndLine {
+			fmt.Fprintf(b, "%s %s%s %s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, fmt.Sprintf("%s:%d", file, line), message)
+		} else {
+			fmt.Fprintf(b, "%s %s%s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, message)
+		}
 	}
 	for _, k := range keys {
 		if k != "prefix" {
