@@ -120,8 +120,11 @@ type TextFormatter struct {
 	// PrintFileAndLine if true print the caller filename and line number 'example.go:123'
 	PrintFileAndLine bool
 
-	// CallerSkip how many calls to skip on the stack to find the real print log file
-	CallerSkip int
+	// GitVersion if set print on log line
+	GitVersion string
+
+	// GitModified will print if GitVersion is set
+	GitModified bool
 
 	sync.Once
 }
@@ -196,12 +199,6 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	if f.PrintFileAndLine && (entry != nil && entry.Caller != nil) {
 		file = fileNameOnly(entry.Caller.File)
 		line = entry.Caller.Line
-		// if _, file, line, ok = runtime.Caller(f.CallerSkip); !ok {
-		// 	file = "???"
-		// 	line = 0
-		// } else {
-		// 	file = fileNameOnly(file)
-		// }
 	}
 
 	prefixFieldClashes(entry.Data)
@@ -242,6 +239,10 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 		for i, key := range keys {
 			f.appendKeyValue(b, key, entry.Data[key], lastKeyIdx != i)
+		}
+
+		if f.GitVersion != "" {
+			f.appendValue(b, fmt.Sprintf("version:%s mod:%t", f.GitVersion, f.GitModified))
 		}
 	}
 
@@ -314,6 +315,11 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 		} else {
 			timestamp = fmt.Sprintf("[%s]", entry.Time.Format(timestampFormat))
 		}
+
+		if f.GitVersion != "" {
+			message += " " + fmt.Sprintf("version:%s mod:%t", f.GitVersion, f.GitModified)
+		}
+
 		if f.PrintFileAndLine {
 			fmt.Fprintf(b, "%s %s%s %s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, fmt.Sprintf("%s:%d", file, line), message)
 		} else {
