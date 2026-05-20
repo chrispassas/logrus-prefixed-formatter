@@ -121,6 +121,9 @@ type TextFormatter struct {
 	// PrintFileAndLine if true print the caller filename and line number 'example.go:123'
 	PrintFileAndLine bool
 
+	// CallerSkip how many calls to skip on the stack to find the real print log file
+	CallerSkip int
+
 	sync.Once
 }
 
@@ -192,7 +195,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		ok   bool
 	)
 	if f.PrintFileAndLine {
-		if _, file, line, ok = runtime.Caller(5); !ok {
+		if _, file, line, ok = runtime.Caller(f.CallerSkip); !ok {
 			file = "???"
 			line = 0
 		} else {
