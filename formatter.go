@@ -193,7 +193,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		file = "???"
 		line = 0
 	} else {
-		file = removeFirstPath(file)
+		file = fileNameOnly(file)
 	}
 
 	prefixFieldClashes(entry.Data)
@@ -237,6 +237,15 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 
 	b.WriteByte('\n')
 	return b.Bytes(), nil
+}
+func fileNameOnly(filePath string) string {
+	parts := strings.Split(filePath, string(os.PathSeparator))
+
+	if len(parts) <= 1 {
+		return filePath
+	}
+
+	return parts[len(parts)-1]
 }
 
 func removeFirstPath(filePath string) string {
