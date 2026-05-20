@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"regexp"
+	"runtime"
 	"sort"
 	"strconv"
 	"strings"
@@ -183,12 +184,17 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	var (
-		file = "???"
-		line = 0
+		file string
+		line int
+		ok   bool
 	)
 
-	file = removeFirstPath(entry.Caller.File)
-	line = entry.Caller.Line
+	if _, file, line, ok = runtime.Caller(2); !ok {
+		file = "???"
+		line = 0
+	} else {
+		file = removeFirstPath(file)
+	}
 
 	prefixFieldClashes(entry.Data)
 
