@@ -317,7 +317,11 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 		}
 
 		if f.GitVersion != "" {
-			message += " " + fmt.Sprintf("version:%s mod:%t", f.GitVersion, f.GitModified)
+			if f.GitModified {
+				message += " " + fmt.Sprintf("version:%s mod:%t", f.GitVersion, f.GitModified)
+			} else {
+				message += " " + fmt.Sprintf("version:%s", f.GitVersion)
+			}
 		}
 
 		if f.PrintFileAndLine {
