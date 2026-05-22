@@ -250,7 +250,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
 
 		if f.PrintFileAndLineFormat != "" {
-			f.appendValue(b, file+":"+strconv.Itoa(line))
+			f.appendKeyValue(b, "loc", file+":"+strconv.Itoa(line), true)
 		}
 
 		if entry.Message != "" {
@@ -261,7 +261,8 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 
 		if f.GitVersion != "" {
-			f.appendValue(b, fmt.Sprintf("version:%s mod:%t", f.GitVersion, f.GitModified))
+			f.appendKeyValue(b, "version", f.GitVersion, true)
+			f.appendKeyValue(b, "mod", f.GitModified, true)
 		}
 	}
 
@@ -345,9 +346,9 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 
 		if f.GitVersion != "" {
 			if f.GitModified {
-				message += " " + fmt.Sprintf("version:%s mod:%t", f.GitVersion, f.GitModified)
+				message += " " + fmt.Sprintf(" version:%s mod:%t", f.GitVersion, f.GitModified)
 			} else {
-				message += " " + fmt.Sprintf("version:%s", f.GitVersion)
+				message += " " + fmt.Sprintf(" version:%s", f.GitVersion)
 			}
 		}
 
