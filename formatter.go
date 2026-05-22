@@ -117,8 +117,8 @@ type TextFormatter struct {
 	// Whether the logger's out is to a terminal.
 	isTerminal bool
 
-	// PrintFileAndLine if true print the caller filename and line number 'example.go:123'
-	PrintFileAndLine bool
+	// PrintFileAndLineFormat set the format, if empty don't print file and line at all
+	PrintFileAndLineFormat PrintFileLineFormat
 
 	// GitVersion if set print on log line
 	GitVersion string
@@ -128,6 +128,16 @@ type TextFormatter struct {
 
 	sync.Once
 }
+
+type PrintFileLineFormat string
+
+const (
+	// PrintFileLineFormatFull print the full file name with line number vscan.go:100
+	PrintFileLineFormatFull PrintFileLineFormat = "full"
+
+	// PrintFileLineFormatMin pint the first letter of the file name wih the line number v:100
+	PrintFileLineFormatMin PrintFileLineFormat = "min"
+)
 
 func getCompiledColor(main string, fallback string) func(string) string {
 	var style string
@@ -194,11 +204,17 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	var (
 		file string
 		line int
-		// ok   bool
 	)
-	if f.PrintFileAndLine && (entry != nil && entry.Caller != nil) {
-		file = fileNameOnly(entry.Caller.File)
-		line = entry.Caller.Line
+
+	if f.PrintFileAndLineFormat != "" && (entry != nil && entry.Caller != nil) {
+		switch f.PrintFileAndLineFormat {
+		case PrintFileLineFormatFull:
+			file = fileNameOnly(entry.Caller.File)
+			line = entry.Caller.Line
+		case PrintFileLineFormatMin:
+			file = firstLetterOnly(entry.Caller.File)
+			line = entry.Caller.Line
+		}
 	}
 
 	prefixFieldClashes(entry.Data)
@@ -230,7 +246,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
 
-		if f.PrintFileAndLine {
+		if f.PrintFileAndLineFormat != "" {
 			f.appendValue(b, file+":"+strconv.Itoa(line))
 		}
 
@@ -257,6 +273,14 @@ func fileNameOnly(filePath string) string {
 	}
 
 	return parts[len(parts)-1]
+}
+
+func firstLetterOnly(filePath string) string {
+	file := fileNameOnly(filePath)
+	if len(file) > 0 {
+		return file[:1]
+	}
+	return ""
 }
 
 func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys []string, timestampFormat string, colorScheme *compiledColorScheme, file string, line int) {
@@ -324,7 +348,7 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 			}
 		}
 
-		if f.PrintFileAndLine {
+		if f.PrintFileAndLineFormat != "" {
 			fmt.Fprintf(b, "%s %s%s %s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, fmt.Sprintf("%s:%d", file, line), message)
 		} else {
 			fmt.Fprintf(b, "%s %s%s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, message)
