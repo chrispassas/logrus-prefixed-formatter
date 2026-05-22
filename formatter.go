@@ -135,8 +135,11 @@ const (
 	// PrintFileLineFormatFull print the full file name with line number vscan.go:100
 	PrintFileLineFormatFull PrintFileLineFormat = "full"
 
-	// PrintFileLineFormatMin pint the first letter of the file name wih the line number v:100
+	// PrintFileLineFormatMin print the first letter of the file name wih the line number v:100
 	PrintFileLineFormatMin PrintFileLineFormat = "min"
+
+	// PrintFileLineFormatNone don't print file name and line number at all
+	PrintFileLineFormatNone PrintFileLineFormat = "none"
 )
 
 func getCompiledColor(main string, fallback string) func(string) string {
