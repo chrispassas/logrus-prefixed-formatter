@@ -257,12 +257,14 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 
 		if f.PrintFileAndLineFormat != "" {
-			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), true)
+			f.appendValue(b, " ")
+			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), false)
 		}
 
 		if f.GitVersion != "" {
+			f.appendValue(b, " ")
 			f.appendKeyValue(b, "version", f.GitVersion, true)
-			f.appendKeyValue(b, "mod", f.GitModified, true)
+			f.appendKeyValue(b, "mod", f.GitModified, false)
 		}
 	}
 
