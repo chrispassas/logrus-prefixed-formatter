@@ -249,15 +249,15 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		}
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
 
-		if f.PrintFileAndLineFormat != "" {
-			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), true)
-		}
-
 		if entry.Message != "" {
 			f.appendKeyValue(b, "msg", entry.Message, lastKeyIdx >= 0)
 		}
 		for i, key := range keys {
 			f.appendKeyValue(b, key, entry.Data[key], lastKeyIdx != i)
+		}
+
+		if f.PrintFileAndLineFormat != "" {
+			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), true)
 		}
 
 		if f.GitVersion != "" {
