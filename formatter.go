@@ -365,7 +365,7 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 		}
 
 		if f.PrintFileAndLineFormat != "" {
-			fmt.Fprintf(b, "%s %s%s %s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, fmt.Sprintf("%s:%d", file, line), message)
+			fmt.Fprintf(b, "%s %s%s %s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, message, fmt.Sprintf("%s:%d", file, line))
 		} else {
 			fmt.Fprintf(b, "%s %s%s "+messageFormat, colorScheme.TimestampColor(timestamp), level, prefix, message)
 		}
