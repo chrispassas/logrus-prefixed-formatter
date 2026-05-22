@@ -195,6 +195,12 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 	lastKeyIdx := len(keys) - 1
 
+	spaceAfterMsg := lastKeyIdx >= 0
+
+	if f.PrintFileAndLineFormat != "" || f.GitVersion != "" {
+		spaceAfterMsg = true
+	}
+
 	if !f.DisableSorting {
 		sort.Strings(keys)
 	}
@@ -250,22 +256,22 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
 
 		if entry.Message != "" {
-			f.appendKeyValue(b, "msg", entry.Message, lastKeyIdx >= 0)
+			f.appendKeyValue(b, "msg", entry.Message, spaceAfterMsg)
 		}
+
+		if f.PrintFileAndLineFormat != "" {
+			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), true)
+		}
+
+		if f.GitVersion != "" {
+			f.appendKeyValue(b, "version", f.GitVersion, true)
+			f.appendKeyValue(b, "mod", f.GitModified, len(keys) > 0)
+		}
+
 		for i, key := range keys {
 			f.appendKeyValue(b, key, entry.Data[key], lastKeyIdx != i)
 		}
 
-		if f.PrintFileAndLineFormat != "" {
-			f.appendValue(b, " ")
-			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), false)
-		}
-
-		if f.GitVersion != "" {
-			f.appendValue(b, " ")
-			f.appendKeyValue(b, "version", f.GitVersion, true)
-			f.appendKeyValue(b, "mod", f.GitModified, false)
-		}
 	}
 
 	b.WriteByte('\n')
