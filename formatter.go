@@ -250,7 +250,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 		f.appendKeyValue(b, "level", entry.Level.String(), true)
 
 		if f.PrintFileAndLineFormat != "" {
-			f.appendKeyValue(b, "loc", file+":"+strconv.Itoa(line), true)
+			f.appendKeyValue(b, "s", file+":"+strconv.Itoa(line), true)
 		}
 
 		if entry.Message != "" {
